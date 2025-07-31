@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BankEase</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-university me-2"></i>BankEase
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/user/dashboard}">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/user/open-account}">
+                            <i class="fas fa-plus-circle me-1"></i>Open Account
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/user/transactions}">
+                            <i class="fas fa-history me-1"></i>Transactions
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span th:text="${user.firstName + ' ' + user.lastName}">User Name</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/user/profile}">
+                                <i class="fas fa-user me-2"></i>Profile
+                            </a></li>
+                            <li><a class="dropdown-item" th:href="@{/user/change-password}">
+                                <i class="fas fa-key me-2"></i>Change Password
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" th:href="@{/logout}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h3 class="card-title mb-1">
+                                    Welcome back, <span th:text="${user.firstName}">User</span>!
+                                </h3>
+                                <p class="card-text mb-0">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    Today is <span th:text="${#dates.format(#dates.createNow(), 'EEEE, MMMM dd, yyyy')}"></span>
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="display-6 fw-bold">
+                                    $<span th:text="${#numbers.formatDecimal(totalBalance, 1, 2)}">0.00</span>
+                                </div>
+                                <small>Total Balance</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="text-primary mb-3">
+                            <i class="fas fa-wallet fa-2x"></i>
+                        </div>
+                        <h5 class="card-title" th:text="${accountCount}">0</h5>
+                        <p class="card-text text-muted">Total Accounts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="text-success mb-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <h5 class="card-title" th:text="${activeAccountCount}">0</h5>
+                        <p class="card-text text-muted">Active Accounts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="text-info mb-3">
+                            <i class="fas fa-exchange-alt fa-2x"></i>
+                        </div>
+                        <h5 class="card-title" th:text="${#lists.size(recentTransactions)}">0</h5>
+                        <p class="card-text text-muted">Recent Transactions</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <div class="text-warning mb-3">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                        <h5 class="card-title">$<span th:text="${#numbers.formatDecimal(totalBalance, 1, 2)}">0.00</span></h5>
+                        <p class="card-text text-muted">Total Balance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Accounts Section -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-credit-card me-2"></i>My Accounts
+                        </h5>
+                        <a th:href="@{/user/open-account}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Open New Account
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(accounts)}" class="text-center py-4">
+                            <i class="fas fa-credit-card fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No accounts yet</h6>
+                            <p class="text-muted">Open your first account to get started</p>
+                            <a th:href="@{/user/open-account}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Open Account
+                            </a>
+                        </div>
+
+                        <div th:if="${!#lists.isEmpty(accounts)}">
+                            <div th:each="account : ${accounts}" class="card mb-3 border-start border-4" 
+                                 th:classappend="${account.status.name() == 'ACTIVE'} ? 'border-success' : 
+                                                 (${account.status.name() == 'PENDING'} ? 'border-warning' : 'border-danger')">
+                                <div class="card-body">
+                                    <div class="row align-items-center">
+                                        <div class="col-md-6">
+                                            <h6 class="card-title mb-1" th:text="${account.accountType.displayName}">Account Type</h6>
+                                            <p class="text-muted mb-1">
+                                                <small>Account #: <span th:text="${account.accountNumber}">000000000</span></small>
+                                            </p>
+                                            <span class="badge" 
+                                                  th:classappend="${account.status.name() == 'ACTIVE'} ? 'bg-success' : 
+                                                                 (${account.status.name() == 'PENDING'} ? 'bg-warning' : 'bg-danger')"
+                                                  th:text="${account.status.displayName}">Status</span>
+                                        </div>
+                                        <div class="col-md-4 text-end">
+                                            <div class="h5 mb-0" th:if="${account.status.name() == 'ACTIVE'}">
+                                                $<span th:text="${#numbers.formatDecimal(account.balance, 1, 2)}">0.00</span>
+                                            </div>
+                                            <div class="h5 mb-0 text-muted" th:if="${account.status.name() != 'ACTIVE'}">
+                                                Pending Approval
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 text-end">
+                                            <a th:href="@{/user/account/{id}(id=${account.id})}" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye me-1"></i>View
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bolt me-2"></i>Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/user/deposit}" class="btn btn-success w-100 py-3">
+                                    <i class="fas fa-plus-circle fa-2x d-block mb-2"></i>
+                                    Deposit Money
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/user/withdraw}" class="btn btn-warning w-100 py-3">
+                                    <i class="fas fa-minus-circle fa-2x d-block mb-2"></i>
+                                    Withdraw Money
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <a th:href="@{/user/transactions}" class="btn btn-info w-100 py-3">
+                                    <i class="fas fa-history fa-2x d-block mb-2"></i>
+                                    View History
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Recent Activity
+                        </h5>
+                        <a th:href="@{/user/transactions}" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${#lists.isEmpty(recentTransactions)}" class="text-center py-4">
+                            <i class="fas fa-history fa-2x text-muted mb-2"></i>
+                            <p class="text-muted mb-0">No recent transactions</p>
+                        </div>
+
+                        <div th:if="${!#lists.isEmpty(recentTransactions)}">
+                            <div th:each="transaction : ${recentTransactions}" class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                                         style="width: 40px; height: 40px;"
+                                         th:classappend="${transaction.transactionType.name() == 'DEPOSIT'} ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'">
+                                        <i th:class="${transaction.transactionType.name() == 'DEPOSIT'} ? 'fas fa-arrow-down' : 'fas fa-arrow-up'"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-semibold" th:text="${transaction.transactionType.displayName}">Transaction Type</div>
+                                    <small class="text-muted" th:text="${#dates.format(transaction.createdAt, 'MMM dd, yyyy')}">Date</small>
+                                </div>
+                                <div class="text-end">
+                                    <div class="fw-bold" 
+                                         th:classappend="${transaction.transactionType.name() == 'DEPOSIT'} ? 'text-success' : 'text-warning'">
+                                        <span th:if="${transaction.transactionType.name() == 'DEPOSIT'}">+</span>
+                                        <span th:if="${transaction.transactionType.name() != 'DEPOSIT'}">-</span>
+                                        $<span th:text="${#numbers.formatDecimal(transaction.amount, 1, 2)}">0.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
